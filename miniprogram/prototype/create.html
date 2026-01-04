@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建图片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: #fff;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn {
+            font-size: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .input-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .prompt-input:focus {
+            border-color: #0052d9;
+        }
+
+        .prompt-input::placeholder {
+            color: #999;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: #0052d9;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .generate-btn:active {
+            background: #003ba8;
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-image {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-prompt {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .publish-btn {
+            width: 100%;
+            background: #07c160;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .publish-btn:active {
+            background: #06ad56;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="back-btn" id="backBtn">←</div>
+        <div class="header-title">创建图片</div>
+    </div>
+
+    <div class="content">
+        <div class="input-section">
+            <label class="input-label">描述你想要画的内容（提示词）</label>
+            <textarea 
+                class="prompt-input" 
+                id="promptInput" 
+                placeholder="例如：一只可爱的小猫咪在花园里玩耍，阳光明媚，色彩鲜艳"
+            ></textarea>
+        </div>
+
+        <button class="generate-btn" id="generateBtn">生成图片</button>
+
+        <div class="loading" id="loadingSection" style="display: none;">
+            AI 正在为你创作
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-image" id="resultImage">
+                <span>生成的图片</span>
+            </div>
+            <div class="result-prompt" id="resultPrompt"></div>
+            <button class="publish-btn" id="publishBtn">发布</button>
+        </div>
+    </div>
+
+    <script>
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultSection = document.getElementById('resultSection');
+        const resultImage = document.getElementById('resultImage');
+        const resultPrompt = document.getElementById('resultPrompt');
+        const publishBtn = document.getElementById('publishBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        let generatedPrompt = '';
+
+        // 返回按钮
+        backBtn.addEventListener('click', function() {
+            window.parent.postMessage({ type: 'navigate', page: 'home.html' }, '*');
+        });
+
+        // 生成图片
+        generateBtn.addEventListener('click', function() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                alert('请输入提示词');
+                return;
+            }
+
+            // 禁用按钮
+            generateBtn.disabled = true;
+            generateBtn.textContent = '生成中...';
+            
+            // 隐藏结果，显示加载
+            resultSection.classList.remove('show');
+            loadingSection.style.display = 'block';
+
+            // 模拟 AI 生成过程
+            setTimeout(() => {
+                generatedPrompt = prompt;
+                resultPrompt.textContent = prompt;
+                
+                // 隐藏加载，显示结果
+                loadingSection.style.display = 'none';
+                resultSection.classList.add('show');
+                
+                // 恢复按钮
+                generateBtn.disabled = false;
+                generateBtn.textContent = '重新生成';
+            }, 2000);
+        });
+
+        // 发布图片
+        publishBtn.addEventListener('click', function() {
+            if (!generatedPrompt) {
+                alert('请先生成图片');
+                return;
+            }
+
+            // 检查是否登录
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                if (confirm('发布需要登录，是否前往登录？')) {
+                    window.parent.postMessage({ type: 'navigate', page: 'profile.html' }, '*');
+                }
+                return;
+            }
+
+            // 保存作品到 localStorage（模拟）
+            const myWorks = JSON.parse(localStorage.getItem('myWorks') || '[]');
+            const newWork = {
+                prompt: generatedPrompt,
+                timestamp: Date.now()
+            };
+            myWorks.unshift(newWork); // 添加到开头
+            localStorage.setItem('myWorks', JSON.stringify(myWorks));
+
+            // 保存到全局画廊（模拟）
+            const allWorks = JSON.parse(localStorage.getItem('allWorks') || '[]');
+            const userName = localStorage.getItem('userName') || '微信用户';
+            allWorks.unshift({
+                prompt: generatedPrompt,
+                author: userName,
+                timestamp: Date.now()
+            });
+            localStorage.setItem('allWorks', JSON.stringify(allWorks));
+
+            // 提示并跳转
+            alert('发布成功！');
+            // 通知首页刷新
+            window.parent.postMessage({ type: 'refresh' }, '*');
+            window.parent.postMessage({ type: 'navigate', page: 'home.html' }, '*');
+        });
+    </script>
+</body>
+</html>
+

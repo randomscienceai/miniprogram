@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: #fff;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e5e5;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+            text-align: center;
+        }
+
+        .gallery-list {
+            padding: 16px;
+        }
+
+        .gallery-item {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .gallery-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: #f0f0f0;
+            display: block;
+        }
+
+        .gallery-info {
+            padding: 12px 16px;
+        }
+
+        .gallery-prompt {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .gallery-author {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .author-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            width: 56px;
+            height: 56px;
+            background: #0052d9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0, 82, 217, 0.4);
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+
+        .placeholder-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">AI 画廊</div>
+    </div>
+
+    <div class="gallery-list" id="galleryList">
+        <!-- 示例图片项 -->
+        <div class="gallery-item">
+            <div class="placeholder-image">AI 生成的图片</div>
+            <div class="gallery-info">
+                <div class="gallery-prompt">一只可爱的小猫咪在花园里玩耍，阳光明媚，色彩鲜艳</div>
+                <div class="gallery-author">
+                    <div class="author-avatar">👤</div>
+                    <span>用户A</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="placeholder-image">AI 生成的图片</div>
+            <div class="gallery-info">
+                <div class="gallery-prompt">未来城市的夜景，霓虹灯闪烁，赛博朋克风格</div>
+                <div class="gallery-author">
+                    <div class="author-avatar">👤</div>
+                    <span>用户B</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="placeholder-image">AI 生成的图片</div>
+            <div class="gallery-info">
+                <div class="gallery-prompt">宁静的山水画，水墨风格，意境深远</div>
+                <div class="gallery-author">
+                    <div class="author-avatar">👤</div>
+                    <span>用户C</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-item">
+            <div class="placeholder-image">AI 生成的图片</div>
+            <div class="gallery-info">
+                <div class="gallery-prompt">科幻机器人，金属质感，细节丰富</div>
+                <div class="gallery-author">
+                    <div class="author-avatar">👤</div>
+                    <span>用户D</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-btn" id="createBtn">+</div>
+
+    <script>
+        const galleryList = document.getElementById('galleryList');
+
+        // 渲染作品列表
+        function renderGallery() {
+            // 从 localStorage 读取所有作品
+            const allWorks = JSON.parse(localStorage.getItem('allWorks') || '[]');
+            
+            // 如果有作品，清空默认示例并显示真实作品
+            if (allWorks.length > 0) {
+                galleryList.innerHTML = '';
+            }
+
+            // 显示所有作品（最新的在前）
+            allWorks.forEach(work => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.innerHTML = `
+                    <div class="placeholder-image">AI 生成的图片</div>
+                    <div class="gallery-info">
+                        <div class="gallery-prompt">${work.prompt}</div>
+                        <div class="gallery-author">
+                            <div class="author-avatar">👤</div>
+                            <span>${work.author || '匿名用户'}</span>
+                        </div>
+                    </div>
+                `;
+                galleryList.appendChild(item);
+            });
+        }
+
+        // 初始化渲染
+        renderGallery();
+
+        // 监听 storage 变化，当有新作品发布时自动刷新
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'allWorks') {
+                renderGallery();
+            }
+        });
+
+        // 监听来自父窗口的消息（同源情况下 storage 事件可能不触发）
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'refresh') {
+                renderGallery();
+            }
+        });
+
+        // 点击创建按钮，跳转到创建页面
+        document.getElementById('createBtn').addEventListener('click', function() {
+            window.parent.postMessage({ type: 'navigate', page: 'create.html' }, '*');
+        });
+
+        // 模拟滚动加载
+        let loading = false;
+        window.addEventListener('scroll', function() {
+            if (loading) return;
+            
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            if (scrollTop + windowHeight >= documentHeight - 100) {
+                loading = true;
+                // 模拟加载新内容
+                setTimeout(() => {
+                    const allWorks = JSON.parse(localStorage.getItem('allWorks') || '[]');
+                    if (allWorks.length < 20) { // 限制示例数据
+                        const newItem = document.createElement('div');
+                        newItem.className = 'gallery-item';
+                        newItem.innerHTML = `
+                            <div class="placeholder-image">AI 生成的图片</div>
+                            <div class="gallery-info">
+                                <div class="gallery-prompt">新加载的图片内容</div>
+                                <div class="gallery-author">
+                                    <div class="author-avatar">👤</div>
+                                    <span>新用户</span>
+                                </div>
+                            </div>
+                        `;
+                        galleryList.appendChild(newItem);
+                    }
+                    loading = false;
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
+
